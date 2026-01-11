@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>99 Squares Guessing Game</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+  padding: 10px;
+}
+
+h1 {
+  font-size: 22px;
+  margin-bottom: 5px;
+}
+
+.rules {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.controls {
+  margin: 10px 0;
+}
+
+input {
+  padding: 8px;
+  font-size: 16px;
+  width: 100px;
+  text-align: center;
+}
+
+button {
+  padding: 10px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  background: #333;
+  color: #fff;
+  margin-left: 5px;
+}
+
+.status {
+  font-weight: bold;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 5px;
+  max-width: 95vw;
+  margin: auto;
+}
+
+.cell {
+  background: #c8a165;
+  border-radius: 6px;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.cell.opened {
+  background: #eee;
+}
+
+.circle {
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+  display: none;
+}
+
+.cell.opened .circle {
+  display: block;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🎲 99 Squares Guessing Game</h1>
+
+<div class="rules">
+<b>Rules</b>
+<ol>
+<li>20 squares opened → Game Over</li>
+<li>3 same colors → Ask one Yes/No question</li>
+<li>No numbers allowed in question</li>
+</ol>
+</div>
+
+<div class="controls">
+<input type="password" id="win" placeholder="Host #" />
+<button onclick="start()">Start</button>
+</div>
+
+<div class="status" id="status"></div>
+<div class="board" id="board"></div>
+
+<script>
+const MAX = 20;
+let board={}, opened=new Set(), count={}, tries=0, asked=false, win;
+
+function start(){
+  win = parseInt(document.getElementById('win').value);
+  if(!win || win<1 || win>99){ alert('Enter 1–99'); return;}
+  setup();
+  draw();
+  document.getElementById('status').innerText='Game Started';
+}
+
+function setup(){
+  board={}; opened.clear(); count={}; tries=0; asked=false;
+  let colors=[];
+  ['Red','Pink','Yellow','Blue'].forEach(c=>{for(let i=0;i<20;i++)colors.push(c)});
+  for(let i=0;i<19;i++)colors.push('Black');
+  shuffle(colors);
+  let k=0;
+  for(let i=1;i<=99;i++) board[i]=(i===win)?'Green':colors[k++];
+}
+
+function draw(){
+  const b=document.getElementById('board'); b.innerHTML='';
+  for(let i=1;i<=100;i++){
+    const d=document.createElement('div');
+    if(i===100){d.style.visibility='hidden'; b.appendChild(d); continue;}
+    d.className='cell'; d.innerText=i;
+    const c=document.createElement('div');
+    c.className='circle'; c.style.background=board[i];
+    d.appendChild(c);
+    d.onclick=()=>open(i,d);
+    b.appendChild(d);
+  }
+}
+
+function open(n,d){
+  if(opened.has(n)||tries>=MAX) return;
+  opened.add(n); tries++; d.classList.add('opened'); d.innerText='';
+  const col=board[n]; count[col]=(count[col]||0)+1;
+
+  if(n===win){ status('🎉 YOU WIN!'); lock(); return;}
+  if(count[col]===3 && col!=='Green' && !asked){
+    asked=true;
+    setTimeout(()=>ask(),200);
+  }
+  if(tries>=MAX){ status('💀 GAME OVER'); lock(); return;}
+  status(`Opened ${tries}/${MAX}`);
+}
+
+function ask(){
+  const q=prompt('Ask a Yes/No question (no numbers)');
+  if(/\d/.test(q)) alert('Invalid Question');
+  else alert('Host answers YES or NO');
+}
+
+function status(t){ document.getElementById('status').innerText=t; }
+function lock(){ document.querySelectorAll('.cell').forEach(x=>x.onclick=null); }
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}}
+</script>
+
+</body>
+</html>
