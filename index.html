@@ -3,50 +3,78 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>99 Squares Guessing Game</title>
+<title>99 Tiles Guessing Game</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  background: #f2f2f2;
-  text-align: center;
+  margin: 0;
   padding: 10px;
+  text-align: center;
+  background:
+    linear-gradient(135deg, #7a4a28 25%, #8b5a2b 25%, #8b5a2b 50%, #7a4a28 50%, #7a4a28 75%, #8b5a2b 75%);
+  background-size: 40px 40px;
 }
 
-h2 { margin-bottom: 5px; }
-
-.menu {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 12px;
-  margin: 10px auto;
-  max-width: 700px;
-  text-align: left;
-  font-size: 14px;
+h2 {
+  color: #fff;
+  text-shadow: 1px 1px 3px #000;
 }
 
+input, button {
+  padding: 8px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.status {
+  color: #fff;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* BOARD */
 .board {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 5px;
+  gap: 6px;
   max-width: 95vw;
-  margin: 10px auto;
+  margin: 15px auto;
 }
 
 .cell {
-  background: #c8a165;
-  border-radius: 6px;
-  aspect-ratio: 1/1;
+  background: radial-gradient(circle at top left, #deb887, #a36a3f);
+  border-radius: 10px;
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  position: relative;
   cursor: pointer;
+  position: relative;
+  box-shadow: inset 0 0 4px #000;
+  transition: transform 0.3s;
+}
+
+.cell:hover {
+  transform: scale(1.05);
 }
 
 .cell.opened {
   background: #eee;
+  cursor: default;
+  animation: flip 0.4s ease;
+}
+
+@keyframes flip {
+  from { transform: rotateY(90deg); }
+  to { transform: rotateY(0deg); }
 }
 
 .number {
@@ -65,189 +93,218 @@ h2 { margin-bottom: 5px; }
   display: block;
 }
 
-.controls {
-  margin: 10px;
+/* MENUS */
+.menu-section {
+  display: none;
+  margin: 20px auto;
+  max-width: 600px;
+  text-align: left;
 }
 
-.status {
-  font-weight: bold;
-  margin: 10px;
-  font-size: 16px;
+.menu {
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-button, input {
-  padding: 8px;
-  font-size: 15px;
+.menu-header {
+  padding: 12px;
+  background: #3e2723;
+  color: #fff;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.menu-content {
+  padding: 12px;
+  display: none;
+  animation: slide 0.3s ease;
+}
+
+@keyframes slide {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>
 </head>
 
 <body>
 
-<h2>🎲 99 Squares Guessing Game</h2>
+<h2>🎲 99 Tiles Guessing Game</h2>
 
-<!-- GAMEPLAY MENU -->
-<div class="menu">
-<b>Gameplay</b>
-<ol>
-<li>Game can be played by 3–10 people.</li>
-<li>It's a number guessing game.</li>
-<li>Host will host the winning number at the start of the game.</li>
-<li>Player who guesses the number wins the game.</li>
-<li>99 tiles hide one colour from 5 colours.</li>
-<li>Each player guesses once per turn.</li>
-<li>The player opening the 3rd tile of any colour can ask an indirect question.</li>
-<li>Try guessing the number as soon as possible.</li>
-<li>If 40 tiles are opened and number not found, the host wins.</li>
-</ol>
-</div>
-
-<!-- RULES MENU -->
-<div class="menu">
-<b>Rules to Ask Questions</b>
-<ol>
-<li>Only after 3 tiles of the same colour are opened.</li>
-<li>The player who opens the 3rd tile asks the question and gets another guess.</li>
-<li>Only Yes / No questions are allowed.</li>
-<li>Host must answer only Yes or No.</li>
-<li>Not accepted: Even/Odd number questions.</li>
-</ol>
-</div>
-
-<!-- CONTROLS -->
-<div class="controls">
-<input type="password" id="win" placeholder="Host #" />
-<button onclick="start()">Start Game</button>
-</div>
+<input type="password" id="win" placeholder="🔐 Host Winning Number">
+<button onclick="start()">▶ Start Game</button>
 
 <div class="status" id="status"></div>
 <div class="board" id="board"></div>
 
-<!-- MENUS AGAIN BELOW BOARD -->
-<div class="menu">
-<b>Gameplay</b>
-<p>(Same rules apply during gameplay)</p>
+<!-- MENUS -->
+<div class="menu-section" id="menus">
+
+  <div class="menu">
+    <div class="menu-header" onclick="toggle(this)">🎮 Gameplay</div>
+    <div class="menu-content">
+      <ol>
+        <li>3–10 players can play.</li>
+        <li>Number guessing game.</li>
+        <li>Host selects winning number.</li>
+        <li>Correct guess wins.</li>
+        <li>99 tiles hide 5 colours.</li>
+        <li>One tile per turn.</li>
+        <li>Third same colour unlocks question.</li>
+        <li>Guess fast to win.</li>
+        <li>40 tiles opened → Host wins.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="menu">
+    <div class="menu-header" onclick="toggle(this)">❓ Rules to Ask Questions</div>
+    <div class="menu-content">
+      <ol>
+        <li>Only after 3 same colours open.</li>
+        <li>Third opener asks and guesses again.</li>
+        <li>Only Yes / No questions.</li>
+        <li>Host replies only Yes or No.</li>
+        <li>No Even/Odd questions.</li>
+      </ol>
+    </div>
+  </div>
+
 </div>
 
-<div class="menu">
-<b>Rules to Ask Questions</b>
-<p>(Follow Yes/No rules strictly)</p>
-</div>
+<!-- SOUNDS -->
+<audio id="openSound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+<audio id="questionSound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+<audio id="winSound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+<audio id="loseSound" src="https://actions.google.com/sounds/v1/cartoon/boing.ogg"></audio>
 
 <script>
 const MAX_TRIES = 40;
-let board = {}, opened = new Set(), count = {}, tries = 0;
-let asked = false, win, gameOver = false;
+let winNumber, boardData = {}, opened = new Set();
+let colorCount = {}, tries = 0, questionUsed = false;
 
 function start() {
-  win = parseInt(document.getElementById('win').value);
-  if (!win || win < 1 || win > 99) {
+  winNumber = parseInt(document.getElementById("win").value);
+  if (!winNumber || winNumber < 1 || winNumber > 99) {
     alert("Enter a number between 1–99");
     return;
   }
-  setup();
-  draw();
-  updateStatus("Game Started");
+
+  setupBoard();
+  drawBoard();
+  tries = 0;
+  opened.clear();
+  colorCount = {};
+  questionUsed = false;
+
+  document.getElementById("menus").style.display = "block";
+  setStatus("🟢 Game Started");
 }
 
-function setup() {
-  board = {}; opened.clear(); count = {};
-  tries = 0; asked = false; gameOver = false;
-
+function setupBoard() {
   let colors = [];
-  ['Red','Pink','Yellow','Blue'].forEach(c => {
+  ["Red","Pink","Yellow","Blue"].forEach(c => {
     for (let i = 0; i < 20; i++) colors.push(c);
   });
-  for (let i = 0; i < 19; i++) colors.push('Black');
-  shuffle(colors);
+  for (let i = 0; i < 19; i++) colors.push("Black");
 
-  let k = 0;
+  shuffle(colors);
+  let idx = 0;
+
   for (let i = 1; i <= 99; i++) {
-    board[i] = (i === win) ? 'Green' : colors[k++];
+    boardData[i] = (i === winNumber) ? "Green" : colors[idx++];
   }
 }
 
-function draw() {
-  const b = document.getElementById('board');
-  b.innerHTML = '';
+function drawBoard() {
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+
   for (let i = 1; i <= 100; i++) {
-    const cell = document.createElement('div');
+    const cell = document.createElement("div");
+
     if (i === 100) {
-      cell.style.visibility = 'hidden';
-      b.appendChild(cell);
+      cell.style.visibility = "hidden";
+      board.appendChild(cell);
       continue;
     }
 
-    cell.className = 'cell';
+    cell.className = "cell";
 
-    const num = document.createElement('div');
-    num.className = 'number';
+    const num = document.createElement("div");
+    num.className = "number";
     num.innerText = i;
 
-    const circle = document.createElement('div');
-    circle.className = 'circle';
-    circle.style.background = board[i];
+    const circle = document.createElement("div");
+    circle.className = "circle";
+    circle.style.background = boardData[i];
 
     cell.appendChild(circle);
     cell.appendChild(num);
-    cell.onclick = () => openCell(i, cell);
-    b.appendChild(cell);
+    cell.onclick = () => openTile(i, cell);
+
+    board.appendChild(cell);
   }
 }
 
-function openCell(n, cell) {
-  if (opened.has(n) || gameOver) return;
+function openTile(n, cell) {
+  if (opened.has(n) || tries >= MAX_TRIES) return;
 
+  document.getElementById("openSound").play();
   opened.add(n);
   tries++;
-  cell.classList.add('opened');
+  cell.classList.add("opened");
 
-  const color = board[n];
-  count[color] = (count[color] || 0) + 1;
+  let color = boardData[n];
+  colorCount[color] = (colorCount[color] || 0) + 1;
 
-  if (n === win) {
-    updateStatus("🎉 PLAYER WINS! GREEN FOUND");
+  if (n === winNumber) {
+    document.getElementById("winSound").play();
+    setStatus("🎉 PLAYER WINS! GREEN FOUND!");
     endGame();
     return;
   }
 
-  if (count[color] === 3 && color !== 'Green' && !asked) {
-    asked = true;
-    setTimeout(askQuestion, 200);
+  if (colorCount[color] === 3 && !questionUsed && color !== "Green") {
+    questionUsed = true;
+    document.getElementById("questionSound").play();
+    setTimeout(() => {
+      const q = prompt("Ask a Yes/No question (no numbers)");
+      if (/\d/.test(q)) alert("❌ Numbers not allowed");
+      else alert("Host answers: Yes or No");
+    }, 200);
   }
 
   if (tries >= MAX_TRIES) {
-    updateStatus("🏆 HOST WINS! 40 TILES OPENED");
+    document.getElementById("loseSound").play();
+    setStatus("🏆 HOST WINS! 40 tiles opened.");
     endGame();
     return;
   }
 
-  updateStatus(`Tiles opened: ${tries} / ${MAX_TRIES}`);
-}
-
-function askQuestion() {
-  const q = prompt("Ask a Yes/No question (No numbers, No even/odd)");
-  if (!q) return;
-  if (/\d/.test(q) || q.toLowerCase().includes("even") || q.toLowerCase().includes("odd")) {
-    alert("❌ Question not accepted");
-  } else {
-    alert("Host answers: YES or NO");
-  }
+  setStatus(`Tiles Opened: ${tries} / ${MAX_TRIES}`);
 }
 
 function endGame() {
-  gameOver = true;
-  document.querySelectorAll('.cell').forEach(c => c.onclick = null);
+  document.querySelectorAll(".cell").forEach(c => c.onclick = null);
 }
 
-function updateStatus(msg) {
-  document.getElementById('status').innerText = msg;
+function setStatus(t) {
+  document.getElementById("status").innerText = t;
 }
 
-function shuffle(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
+function toggle(header) {
+  const content = header.nextElementSibling;
+  content.style.display = content.style.display === "block" ? "none" : "block";
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
     let j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
 }
 </script>
