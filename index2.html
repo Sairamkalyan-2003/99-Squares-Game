@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>99 Squares Guessing Game</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f2f2;
+  text-align: center;
+  padding: 10px;
+}
+
+h2 { margin-bottom: 5px; }
+
+.menu {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 10px auto;
+  max-width: 700px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 5px;
+  max-width: 95vw;
+  margin: 10px auto;
+}
+
+.cell {
+  background: #c8a165;
+  border-radius: 6px;
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  position: relative;
+  cursor: pointer;
+}
+
+.cell.opened {
+  background: #eee;
+}
+
+.number {
+  position: absolute;
+  font-size: 14px;
+}
+
+.circle {
+  width: 65%;
+  height: 65%;
+  border-radius: 50%;
+  display: none;
+}
+
+.cell.opened .circle {
+  display: block;
+}
+
+.controls {
+  margin: 10px;
+}
+
+.status {
+  font-weight: bold;
+  margin: 10px;
+  font-size: 16px;
+}
+
+button, input {
+  padding: 8px;
+  font-size: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🎲 99 Squares Guessing Game</h2>
+
+<!-- GAMEPLAY MENU -->
+<div class="menu">
+<b>Gameplay</b>
+<ol>
+<li>Game can be played by 3–10 people.</li>
+<li>It's a number guessing game.</li>
+<li>Host will host the winning number at the start of the game.</li>
+<li>Player who guesses the number wins the game.</li>
+<li>99 tiles hide one colour from 5 colours.</li>
+<li>Each player guesses once per turn.</li>
+<li>The player opening the 3rd tile of any colour can ask an indirect question.</li>
+<li>Try guessing the number as soon as possible.</li>
+<li>If 40 tiles are opened and number not found, the host wins.</li>
+</ol>
+</div>
+
+<!-- RULES MENU -->
+<div class="menu">
+<b>Rules to Ask Questions</b>
+<ol>
+<li>Only after 3 tiles of the same colour are opened.</li>
+<li>The player who opens the 3rd tile asks the question and gets another guess.</li>
+<li>Only Yes / No questions are allowed.</li>
+<li>Host must answer only Yes or No.</li>
+<li>Not accepted: Even/Odd number questions.</li>
+</ol>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+<input type="password" id="win" placeholder="Host #" />
+<button onclick="start()">Start Game</button>
+</div>
+
+<div class="status" id="status"></div>
+<div class="board" id="board"></div>
+
+<!-- MENUS AGAIN BELOW BOARD -->
+<div class="menu">
+<b>Gameplay</b>
+<p>(Same rules apply during gameplay)</p>
+</div>
+
+<div class="menu">
+<b>Rules to Ask Questions</b>
+<p>(Follow Yes/No rules strictly)</p>
+</div>
+
+<script>
+const MAX_TRIES = 40;
+let board = {}, opened = new Set(), count = {}, tries = 0;
+let asked = false, win, gameOver = false;
+
+function start() {
+  win = parseInt(document.getElementById('win').value);
+  if (!win || win < 1 || win > 99) {
+    alert("Enter a number between 1–99");
+    return;
+  }
+  setup();
+  draw();
+  updateStatus("Game Started");
+}
+
+function setup() {
+  board = {}; opened.clear(); count = {};
+  tries = 0; asked = false; gameOver = false;
+
+  let colors = [];
+  ['Red','Pink','Yellow','Blue'].forEach(c => {
+    for (let i = 0; i < 20; i++) colors.push(c);
+  });
+  for (let i = 0; i < 19; i++) colors.push('Black');
+  shuffle(colors);
+
+  let k = 0;
+  for (let i = 1; i <= 99; i++) {
+    board[i] = (i === win) ? 'Green' : colors[k++];
+  }
+}
+
+function draw() {
+  const b = document.getElementById('board');
+  b.innerHTML = '';
+  for (let i = 1; i <= 100; i++) {
+    const cell = document.createElement('div');
+    if (i === 100) {
+      cell.style.visibility = 'hidden';
+      b.appendChild(cell);
+      continue;
+    }
+
+    cell.className = 'cell';
+
+    const num = document.createElement('div');
+    num.className = 'number';
+    num.innerText = i;
+
+    const circle = document.createElement('div');
+    circle.className = 'circle';
+    circle.style.background = board[i];
+
+    cell.appendChild(circle);
+    cell.appendChild(num);
+    cell.onclick = () => openCell(i, cell);
+    b.appendChild(cell);
+  }
+}
+
+function openCell(n, cell) {
+  if (opened.has(n) || gameOver) return;
+
+  opened.add(n);
+  tries++;
+  cell.classList.add('opened');
+
+  const color = board[n];
+  count[color] = (count[color] || 0) + 1;
+
+  if (n === win) {
+    updateStatus("🎉 PLAYER WINS! GREEN FOUND");
+    endGame();
+    return;
+  }
+
+  if (count[color] === 3 && color !== 'Green' && !asked) {
+    asked = true;
+    setTimeout(askQuestion, 200);
+  }
+
+  if (tries >= MAX_TRIES) {
+    updateStatus("🏆 HOST WINS! 40 TILES OPENED");
+    endGame();
+    return;
+  }
+
+  updateStatus(`Tiles opened: ${tries} / ${MAX_TRIES}`);
+}
+
+function askQuestion() {
+  const q = prompt("Ask a Yes/No question (No numbers, No even/odd)");
+  if (!q) return;
+  if (/\d/.test(q) || q.toLowerCase().includes("even") || q.toLowerCase().includes("odd")) {
+    alert("❌ Question not accepted");
+  } else {
+    alert("Host answers: YES or NO");
+  }
+}
+
+function endGame() {
+  gameOver = true;
+  document.querySelectorAll('.cell').forEach(c => c.onclick = null);
+}
+
+function updateStatus(msg) {
+  document.getElementById('status').innerText = msg;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+</script>
+
+</body>
+</html>
